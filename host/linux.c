@@ -35,6 +35,8 @@
 
 #include <linux/string.h>
 
+#include "linux/pci.h"
+
 #include "mic/micscif_kmem_cache.h"
 #include "micint.h"
 #include "mic_common.h"
@@ -304,8 +306,8 @@ mic_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	if (mic_msi_enable){
 		for (i = 0; i < MIC_NUM_MSIX_ENTRIES; i ++)
 			bd_info->bi_msix_entries[i].entry = i;
-		err = pci_enable_msix(mic_ctx->bi_pdev, bd_info->bi_msix_entries,
-				      MIC_NUM_MSIX_ENTRIES);
+		err = pci_enable_msix_range(mic_ctx->bi_pdev, bd_info->bi_msix_entries,
+				      MIC_NUM_MSIX_ENTRIES, MIC_NUM_MSIX_ENTRIES);
 		if (err == 0 ) {
 			// Only support 1 MSIx for now
 			err = request_irq(bd_info->bi_msix_entries[0].vector,
