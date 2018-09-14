@@ -43,7 +43,7 @@ static int micvcons_write(struct tty_struct * tty, const unsigned char *buf,
 								int count);
 static int micvcons_write_room(struct tty_struct *tty);
 static void micvcons_set_termios(struct tty_struct *tty, struct ktermios * old);
-static void micvcons_timeout(unsigned long);
+static void micvcons_timeout(struct timer_list *t);
 static void micvcons_throttle(struct tty_struct *tty);
 static void micvcons_unthrottle(struct tty_struct *tty);
 static void micvcons_wakeup_readbuf(struct work_struct *work);
@@ -144,10 +144,8 @@ micvcons_create(int num_bds)
 			goto exit;
 		}
 		INIT_WORK(&port->dp_wakeup_read_buf, micvcons_wakeup_readbuf);
-	}
-	vcons_timer.function = micvcons_timeout;
-	vcons_timer.data = (unsigned long)(&timer_list_head);
-	init_timer(&vcons_timer);
+  }
+  timer_setup(&vcons_timer, micvcons_timeout, 0);
 exit:
 	return ret;
 }
@@ -499,9 +497,10 @@ micvcons_wakeup_readbuf(struct work_struct *work)
 }
 
 static void
-micvcons_timeout(unsigned long data)
+micvcons_timeout(struct timer_list *t)
 {
-	struct list_head *timer_list_ptr = (struct list_head *)data;
+	struct list_head *timer_list_ptr = &timer_list_head;
+
 	micvcons_port_t *port;
 	u8 console_active = 0;
 	int num_chars_read = 0;

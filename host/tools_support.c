@@ -89,8 +89,9 @@ mic_pin_user_pages (void *data, struct page **pages, uint32_t len, int32_t *nf_p
 
 	// pin the user pages; use semaphores on linux for doing the same
 	down_read(&current->mm->mmap_sem);
-	*nf_pages = (int32_t)get_user_pages(current, current->mm, (uint64_t)data,
-			  nr_pages, PROT_WRITE, 1, pages, NULL);
+	*nf_pages = (int32_t)get_user_pages_remote(current, current->mm, 
+      (uint64_t)data, nr_pages, 
+      PROT_WRITE, 1, pages, NULL);
 	up_read(&current->mm->mmap_sem);
 
 	// compare if the no of final pages is equal to no of requested pages
